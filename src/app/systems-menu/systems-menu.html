@@ -1,0 +1,54 @@
+<nav class="navigation-tree" [class.collapsed]="isMenuCollapsed" #navTree>
+  <!-- Fixed Positioned Circular Toggle Button -->
+  <button class="fixed-toggle-btn" 
+          [class.collapsed]="isMenuCollapsed"
+          (click)="toggleMenuCollapse()"
+          [title]="isMenuCollapsed ? 'Expand menu' : 'Collapse menu'">
+    <span class="toggle-icon">{{ isMenuCollapsed ? '&gt;&gt;' : '&lt;&lt;' }}</span>
+  </button>
+  
+  <div class="nav-section" *ngFor="let category of navigationCategories$ | async; trackBy: trackByCategory">
+    <!-- Category Header -->
+    <div class="category-header" 
+         [class.expanded]="expandedCategories.has(category.id)"
+         (click)="toggleCategory(category.id)">
+      <div class="category-icon" [attr.data-icon]="category.icon"></div>
+      <span class="category-title">{{ category.name }}</span>
+      <div class="chevron"></div>
+    </div>
+
+    <!-- Category Items -->
+    <div class="category-content" 
+         [@expandCollapse]="expandedCategories.has(category.id) ? 'expanded' : 'collapsed'">
+      <div class="nav-item" 
+           *ngFor="let item of category.items; trackBy: trackByItem"
+           [class.has-children]="item.children && item.children.length > 0"
+           [class.expanded]="expandedItems.has(item.id)"
+           [class.selectable]="item.isSelectable">
+        
+        <!-- Main Navigation Item -->
+        <div class="nav-link"
+             [class.active]="selectedNavId === item.id && item.isSelectable"
+             [class.non-selectable]="!item.isSelectable"
+             (click)="handleItemClick(item)">
+          <div class="nav-icon" [attr.data-icon]="item.icon"></div>
+          <span class="nav-text">{{ item.name }}</span>
+          <div class="chevron" *ngIf="item.children && item.children.length > 0"></div>
+        </div>
+
+        <!-- Children (Sub-menu) -->
+        <div class="nav-children" 
+             *ngIf="item.children && item.children.length > 0"
+             [@expandCollapse]="expandedItems.has(item.id) ? 'expanded' : 'collapsed'">
+          <div class="nav-child" 
+               *ngFor="let child of item.children; trackBy: trackByItem"
+               [class.active]="selectedNavId === child.id"
+               (click)="handleItemClick(child)">
+            <div class="child-icon" [attr.data-icon]="child.icon"></div>
+            <span class="child-text">{{ child.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

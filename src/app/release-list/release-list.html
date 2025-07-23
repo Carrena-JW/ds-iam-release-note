@@ -1,0 +1,65 @@
+<div class="release-list-container">
+  <div *ngIf="releaseNote$ | async as note; else noSystem" 
+       class="content-wrapper"
+       [@contentSlideIn]="contentAnimationState">
+    
+    <div *ngIf="note && note.items.length > 0; else noItems" class="release-items">
+      <div class="section-header">
+        <h2 class="section-title">{{ selectedNavItem?.name || 'Release Notes' }}</h2>
+        <span class="item-count">{{ note.items.length }} releases</span>
+      </div>
+      
+      <div class="release-list">
+        <div *ngFor="let item of note.items; trackBy: trackByItem; let i = index" 
+             class="release-item"
+             [class.active]="item.id === selectedReleaseItemId"
+             [style.animation-delay]="(i * 50) + 'ms'"
+             [@itemSlideIn]
+             (click)="selectReleaseItem(item)">
+          
+          <div class="release-badge">
+            <span class="version">v{{ item.version }}</span>
+            <div *ngIf="isNewRelease(item.date)" 
+                 class="new-indicator"
+                 title="Released today">
+              <svg class="new-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span class="new-text">NEW</span>
+            </div>
+          </div>
+          
+          <div class="release-content">
+            <h3 class="release-title">{{ item.title }}</h3>
+            <time class="release-date" [dateTime]="item.date">
+              {{ formatDate(item.date) }}
+            </time>
+          </div>
+          
+          <div class="release-indicator">
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template #noItems>
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h3 class="empty-title">No releases yet</h3>
+        <p class="empty-message">This system doesn't have any release notes yet.</p>
+      </div>
+    </ng-template>
+  </div>
+  
+  <ng-template #noSystem>
+    <div class="empty-state welcome-state">
+      <div class="empty-icon">🚀</div>
+      <h3 class="empty-title">Welcome to Release Notes</h3>
+      <p class="empty-message">Select a system from the navigation to view its release notes.</p>
+    </div>
+  </ng-template>
+</div>

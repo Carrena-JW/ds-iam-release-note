@@ -1,0 +1,11 @@
+<div class="app-container">
+  <header class="app-header">
+    <h1>Release Notes</h1>
+    <button (click)="toggleTheme()">Toggle Theme</button>
+  </header>
+  <main class="main-content">
+    <app-systems-menu class="systems-menu" [class.collapsed]="isMenuCollapsed"></app-systems-menu>
+    <app-release-list class="release-list"></app-release-list>
+    <app-release-detail class="release-detail"></app-release-detail>
+  </main>
+</div>

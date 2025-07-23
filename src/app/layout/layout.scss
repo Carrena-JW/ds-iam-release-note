@@ -1,0 +1,84 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.app-header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  button {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+      border-color: var(--primary-accent-color);
+    }
+  }
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--surface-color);
+}
+
+.systems-menu {
+  width: 280px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  background-color: var(--background-color);
+  padding: 1rem 0;
+  transition: width 0.3s ease;
+  position: relative;
+
+  &.collapsed {
+    width: 48px; // Reduced from 64px for tighter collapsed state
+  }
+}
+
+.release-list {
+  flex: 1;
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  background-color: var(--background-color);
+  padding: 1rem 0;
+}
+
+.release-detail {
+  flex: 2;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--background-color);
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .systems-menu {
+    &.collapsed {
+      width: 40px; // Even smaller on mobile
+    }
+  }
+}
