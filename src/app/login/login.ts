@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { AuthService, LoginRequest } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,7 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.scss'],
   standalone: true
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   loginForm = {
     email: '',
     password: '',
@@ -21,7 +23,17 @@ export class LoginComponent {
   errorMessage = '';
   showPassword = false;
 
-  constructor(private router: Router) {}
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   onSubmit() {
     if (!this.loginForm.email || !this.loginForm.password) {
@@ -32,17 +44,33 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Simulate login API call
-    setTimeout(() => {
-      // For demo purposes, accept any email/password combination
-      if (this.loginForm.email && this.loginForm.password) {
-        // Successful login - redirect to home
-        this.router.navigate(['/home']);
-      } else {
-        this.errorMessage = 'Invalid email or password.';
-      }
-      this.isLoading = false;
-    }, 1500);
+    const loginRequest: LoginRequest = {
+      email: this.loginForm.email.trim(),
+      password: this.loginForm.password,
+      rememberMe: this.loginForm.rememberMe
+    };
+
+    this.authService.login(loginRequest)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // Login successful
+          this.isLoading = false;
+          
+          // Check if there's a redirect URL stored
+          const redirectUrl = sessionStorage.getItem('redirectUrl') || '/home';
+          sessionStorage.removeItem('redirectUrl');
+          
+          // Navigate to the intended destination
+          this.router.navigate([redirectUrl]);
+        },
+        error: (error) => {
+          // Login failed
+          this.isLoading = false;
+          this.errorMessage = error.error || 'Login failed. Please try again.';
+          console.error('Login error:', error);
+        }
+      });
   }
 
   togglePasswordVisibility() {
