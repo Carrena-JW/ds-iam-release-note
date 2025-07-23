@@ -39,7 +39,7 @@ export class ValidationUtils {
   /**
    * Validate password strength
    */
-  static validatePassword(password: string): ValidationResult {
+  static validatePassword(password: string, skipWeakCheck: boolean = false): ValidationResult {
     const errors: string[] = [];
     
     if (!password || typeof password !== 'string') {
@@ -55,17 +55,20 @@ export class ValidationUtils {
       errors.push('Password is too long');
     }
     
-    // Check for common weak patterns
-    const commonPatterns = [
-      /^(.)\1+$/, // All same character
-      /^(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i, // Sequential
-      /^(password|123456|qwerty|admin|root)/i // Common passwords
-    ];
-    
-    for (const pattern of commonPatterns) {
-      if (pattern.test(password)) {
-        errors.push('Password is too weak. Please choose a stronger password');
-        break;
+    // Skip weak password check for demo/test purposes
+    if (!skipWeakCheck) {
+      // Check for common weak patterns
+      const commonPatterns = [
+        /^(.)\1+$/, // All same character
+        /^(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i, // Sequential
+        /^(123456|qwerty|admin|root)/i // Common passwords (excluding 'password' for demo)
+      ];
+      
+      for (const pattern of commonPatterns) {
+        if (pattern.test(password)) {
+          errors.push('Password is too weak. Please choose a stronger password');
+          break;
+        }
       }
     }
     

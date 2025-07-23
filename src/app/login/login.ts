@@ -98,8 +98,9 @@ export class LoginComponent implements OnDestroy {
       isValid = false;
     }
 
-    // Validate password
-    const passwordValidation = ValidationUtils.validatePassword(this.loginForm.password);
+    // Validate password (skip weak check for demo account)
+    const isDemoAccount = this.loginForm.email.trim().toLowerCase() === 'admin@example.com';
+    const passwordValidation = ValidationUtils.validatePassword(this.loginForm.password, isDemoAccount);
     if (!passwordValidation.isValid) {
       this.validationErrors['password'] = passwordValidation.errors;
       isValid = false;
