@@ -145,7 +145,7 @@ export class AuthService {
   }
 
   /**
-   * Check if user is currently authenticated
+   * Check if user is currently authenticated (pure function without side effects)
    */
   isAuthenticated(): boolean {
     const token = this.getStoredToken();
@@ -155,20 +155,61 @@ export class AuthService {
       return false;
     }
 
+    // Simple token expiry check without side effects
+    return !this.isTokenExpired(expiresAt);
+  }
+
+  /**
+   * Check authentication status and handle expired tokens
+   * This method can have side effects for token management
+   */
+  checkAuthenticationStatus(): boolean {
+    const token = this.getStoredToken();
+    const expiresAt = this.getStoredExpires();
+    
+    if (!token || !expiresAt || !ValidationUtils.validateTokenFormat(token)) {
+      this.handleAuthenticationFailure('invalid_token');
+      return false;
+    }
+
     if (this.isTokenExpired(expiresAt)) {
       const refreshToken = this.getStoredRefreshToken();
       if (refreshToken && !this.isRefreshTokenExpired()) {
         // Token expired but refresh token is valid, attempt refresh
-        this.refreshAccessToken().subscribe();
-        return true;
+        this.attemptTokenRefresh();
+        return true; // Still considered authenticated pending refresh
       } else {
-        Logger.logAuthEvent('token_expired', this.currentUserSubject.value?.email, false);
-        this.logout();
+        this.handleAuthenticationFailure('token_expired');
         return false;
       }
     }
 
     return true;
+  }
+
+  /**
+   * Handle authentication failure scenarios
+   */
+  private handleAuthenticationFailure(reason: string): void {
+    Logger.logAuthEvent(reason, this.currentUserSubject.value?.email, false);
+    // Don't call logout directly, let components handle navigation
+    this.clearAuthData();
+    this.isAuthenticatedSubject.next(false);
+    this.currentUserSubject.next(null);
+  }
+
+  /**
+   * Attempt token refresh without blocking current operation
+   */
+  private attemptTokenRefresh(): void {
+    if (!this.isRefreshing) {
+      this.refreshAccessToken().subscribe({
+        error: (error) => {
+          Logger.error('Background token refresh failed', 'AuthService', error);
+          this.handleAuthenticationFailure('refresh_failed');
+        }
+      });
+    }
   }
 
   /**

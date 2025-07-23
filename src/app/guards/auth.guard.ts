@@ -36,7 +36,8 @@ export class AuthGuard implements CanActivate, CanActivateChild {
    * Check if user is authenticated and redirect if needed
    */
   private checkAuthentication(url: string): boolean {
-    if (this.authService.isAuthenticated()) {
+    // Use checkAuthenticationStatus to handle side effects properly
+    if (this.authService.checkAuthenticationStatus()) {
       return true;
     }
 

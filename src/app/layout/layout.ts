@@ -63,6 +63,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   logout() {
     this.showUserMenu = false;
+    // AuthService handles the navigation internally
     this.authService.logout();
   }
 

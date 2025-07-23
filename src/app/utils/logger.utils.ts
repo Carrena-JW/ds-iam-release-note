@@ -12,7 +12,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   context?: string;
-  data?: any;
+  data?: unknown;
   userId?: string;
 }
 
@@ -33,35 +33,35 @@ export class Logger {
   /**
    * Log error message
    */
-  static error(message: string, context?: string, data?: any, userId?: string): void {
+  static error(message: string, context?: string, data?: unknown, userId?: string): void {
     Logger.getInstance().log(LogLevel.ERROR, message, context, data, userId);
   }
   
   /**
    * Log warning message
    */
-  static warn(message: string, context?: string, data?: any, userId?: string): void {
+  static warn(message: string, context?: string, data?: unknown, userId?: string): void {
     Logger.getInstance().log(LogLevel.WARN, message, context, data, userId);
   }
   
   /**
    * Log info message
    */
-  static info(message: string, context?: string, data?: any, userId?: string): void {
+  static info(message: string, context?: string, data?: unknown, userId?: string): void {
     Logger.getInstance().log(LogLevel.INFO, message, context, data, userId);
   }
   
   /**
    * Log debug message
    */
-  static debug(message: string, context?: string, data?: any, userId?: string): void {
+  static debug(message: string, context?: string, data?: unknown, userId?: string): void {
     Logger.getInstance().log(LogLevel.DEBUG, message, context, data, userId);
   }
   
   /**
    * Log authentication events
    */
-  static logAuthEvent(event: string, email?: string, success?: boolean, details?: any): void {
+  static logAuthEvent(event: string, email?: string, success?: boolean, details?: unknown): void {
     const hashedEmail = email ? SecurityUtils.hashForLogging(email) : undefined;
     const sanitizedDetails = details ? Logger.sanitizeLogData(details) : undefined;
     
@@ -81,7 +81,7 @@ export class Logger {
   /**
    * Core logging method
    */
-  private log(level: LogLevel, message: string, context?: string, data?: any, userId?: string): void {
+  private log(level: LogLevel, message: string, context?: string, data?: unknown, userId?: string): void {
     const entry: LogEntry = {
       timestamp: Date.now(),
       level,
@@ -111,15 +111,15 @@ export class Logger {
   /**
    * Sanitize data before logging to prevent sensitive data exposure
    */
-  private static sanitizeLogData(data: any): any {
+  private static sanitizeLogData(data: unknown): unknown {
     if (!data) return data;
     
     if (typeof data === 'string') {
       return data.substring(0, 500); // Truncate long strings
     }
     
-    if (typeof data === 'object') {
-      const sanitized: any = {};
+    if (typeof data === 'object' && data !== null) {
+      const sanitized: Record<string, unknown> = {};
       
       for (const [key, value] of Object.entries(data)) {
         const lowerKey = key.toLowerCase();

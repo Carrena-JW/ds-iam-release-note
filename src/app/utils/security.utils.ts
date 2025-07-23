@@ -44,9 +44,9 @@ export class SecurityUtils {
       attempt => now - attempt.timestamp < AUTH_CONSTANTS.LOGIN_ATTEMPT_WINDOW * 2
     );
     
-    // Store updated attempts
+    // Store updated attempts in localStorage for better brute-force protection
     try {
-      sessionStorage.setItem(
+      localStorage.setItem(
         `${AUTH_CONSTANTS.LOGIN_ATTEMPTS_KEY}_${email.toLowerCase()}`,
         JSON.stringify(recentAttempts)
       );
@@ -60,7 +60,7 @@ export class SecurityUtils {
    */
   private static getLoginAttempts(email: string): LoginAttempt[] {
     try {
-      const stored = sessionStorage.getItem(
+      const stored = localStorage.getItem(
         `${AUTH_CONSTANTS.LOGIN_ATTEMPTS_KEY}_${email.toLowerCase()}`
       );
       
@@ -88,7 +88,7 @@ export class SecurityUtils {
    */
   static clearLoginAttempts(email: string): void {
     try {
-      sessionStorage.removeItem(
+      localStorage.removeItem(
         `${AUTH_CONSTANTS.LOGIN_ATTEMPTS_KEY}_${email.toLowerCase()}`
       );
     } catch (error) {

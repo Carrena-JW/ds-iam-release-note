@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
@@ -8,7 +8,7 @@ import { Logger } from '../utils/logger.utils';
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
+  private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
   constructor(private authService: AuthService) {}
 
@@ -47,29 +47,30 @@ export class AuthInterceptor implements HttpInterceptor {
   /**
    * Add Authorization header to request
    */
-  private addAuthorizationHeader(request: HttpRequest<any>): HttpRequest<any> {
+  private addAuthorizationHeader(request: HttpRequest<unknown>): HttpRequest<unknown> {
     const token = this.authService.getToken();
     
     if (token) {
-      return request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`
+      };
+      
+      // Only add Content-Type if not already present and if request has body
+      if (!request.headers.has('Content-Type') && request.body) {
+        headers['Content-Type'] = 'application/json';
+      }
+      
+      return request.clone({ setHeaders: headers });
     }
 
-    return request.clone({
-      setHeaders: {
-        'Content-Type': 'application/json'
-      }
-    });
+    // Don't automatically add Content-Type for requests without token
+    return request;
   }
 
   /**
    * Handle 401 Unauthorized error by attempting token refresh
    */
-  private handle401Error(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  private handle401Error(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     if (!this.isRefreshing) {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
@@ -77,7 +78,7 @@ export class AuthInterceptor implements HttpInterceptor {
       Logger.info('Token expired, attempting refresh', 'AuthInterceptor');
 
       return this.authService.refreshAccessToken().pipe(
-        switchMap((tokenResponse: any) => {
+        switchMap((tokenResponse) => {
           this.isRefreshing = false;
           this.refreshTokenSubject.next(tokenResponse.accessToken);
           
